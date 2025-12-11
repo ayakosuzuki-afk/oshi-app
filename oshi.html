@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>お話してみよう！</title>
+
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 0 20px;
+      text-align: center;
+    }
+    #preview {
+      margin-top: 20px;
+    }
+    #preview img {
+      width: 100%;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+    .bubble {
+      margin-top: 10px;
+      padding: 12px;
+      background: #f2f2f2;
+      border-radius: 10px;
+      display: inline-block;
+      max-width: 90%;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>おはなししよう！</h1>
+
+  <textarea id="userInput" rows="3" placeholder="ここに相談・一言を入力してね…" style="width:100%;"></textarea>
+  <br>
+  <button id="sendBtn">送信して話を聞いてもらう</button>
+
+  <div id="preview"></div>
+
+  <script>
+    // ★ あなたの Apps Script URL
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyStMvj6U0h-Zki69jUQl3F6mxflkVG6NWPRU9dzLP0YbyVjFzseQ9B0N790budRvxnfg/exec";
+
+    // ★ image_mapping.json をここに簡易的に埋め込む（必要な部分だけ）
+    // ※ 私が作った JSON (image_mapping.json) を丸ごと使う場合は fetch でも可。
+    const imageMap = {
+  "IMAGE_01.JPG": "https://drive.google.com/uc?id=1j4ljYwNoEL1j2tgTJz1q4RANk8mRHDSh",
+  "IMAGE_02.JPG": "https://drive.google.com/uc?id=1q4CsTJ0XqxCXECnyqZPKt4OBjXOJXusb",
+  "IMAGE_03.JPG": "https://drive.google.com/uc?id=1X6jPBZDVPk9wFh4-9Qv8DDlhI52ocFJ5",
+  "IMAGE_04.JPG": "https://drive.google.com/uc?id=1vzIUe7AoPqqhVXVJkzbe8FaWXsn-Ntcy",
+  "IMAGE_05.JPG": "https://drive.google.com/uc?id=1qCgMTVpUcVPis78kh7bKZiqczQUK1Tpk",
+  "IMAGE_06.JPG": "https://drive.google.com/uc?id=1hG2upsXbZz6XkdPe9whQDPoU5DluX7NK",
+  "IMAGE_07.JPG": "https://drive.google.com/uc?id=1lLnuEiKcIrLKkf_fon5Jlm2V9GeW_fDI",
+  "IMAGE_08.JPG": "https://drive.google.com/uc?id=1X2I9IuTknd5dgjf3ZUdbrxjOCf5ea7De",
+  "IMAGE_09.JPG": "https://drive.google.com/uc?id=1-FxrmKBW_fBf6UnFsVsJqAwuwi1xVn4X",
+  "IMAGE_10.JPG": "https://drive.google.com/uc?id=1nyP4ensZ-lu8DywqWp2nWJmkYe2P7XjH",
+  "IMAGE_11.JPG": "https://drive.google.com/uc?id=1Wy-xetamppECRCwl9fnWN2WaT7TeWObY",
+  "IMAGE_12.JPG": "https://drive.google.com/uc?id=1veS7nb6y3XSOemTTtck9EZ7oLbWMZe1x",
+  "IMAGE_13.JPG": "https://drive.google.com/uc?id=1uIRGikHVAZz5bT_8lZ3VrhSfHJf_TNQ0",
+  "IMAGE_14.JPG": "https://drive.google.com/uc?id=1uY5ZWI26AbHIibQ9B0qsDpLOIzAfXctz",
+  "IMAGE_15.JPG": "https://drive.google.com/uc?id=1BY_4qrjRs6O8d4AESAJC2AxWHoQZ8mKE",
+  "IMAGE_16.JPG": "https://drive.google.com/uc?id=1PFIDLOezE1bJuq3TdIdCZqnnItTZpkq_",
+  "IMAGE_17.JPG": "https://drive.google.com/uc?id=1RxBFTA8TSx8Va20ppxzca9E1TTpgBMKn",
+  "IMAGE_18.JPG": "https://drive.google.com/uc?id=1uXEUgity8rbMHcsKwcAaeMY53xmFaLel",
+  "IMAGE_19.JPG": "https://drive.google.com/uc?id=1Txk0H7PxfFwQCIuhM1D9mVj8fdsCfprp",
+  "IMAGE_20.JPG": "https://drive.google.com/uc?id=1eKdzD3ffIcL0LbTfGom1gGT_dRiGuWOW",
+  "IMAGE_21.JPG": "https://drive.google.com/uc?id=1oHzjfPhNzcqSCSY58ZX2zjtCQX786ckU",
+  "IMAGE_22.JPG": "https://drive.google.com/uc?id=1yhtqfgg4aNmnLBp4jZnVAN0H0CosDIHl",
+  "IMAGE_23.JPG": "https://drive.google.com/uc?id=1Ww2qiXVqgvEQVBO98fIkulOSuUFWUcE0",
+  "IMAGE_24.JPG": "https://drive.google.com/uc?id=1THQovAiQafvgYts1yOA0kxu2UVcq8myd",
+  "IMAGE_25.JPG": "https://drive.google.com/uc?id=1MWsdMBsQf9WGPQVYtEr5Lc6PEp_pZSry",
+  "IMAGE_26.JPG": "https://drive.google.com/uc?id=1MooD4p_siKFQ-2DMXX1m2hWIr41DjCdv",
+  "IMAGE_27.JPG": "https://drive.google.com/uc?id=1Afq4wvTvMs63GL1FlMobhxMjkRHuiH5Z",
+  "IMAGE_28.JPG": "https://drive.google.com/uc?id=1SSvplf64vH4UvYVpP7JNWStcJKPrlclB",
+  "IMAGE_29.JPG": "https://drive.google.com/uc?id=1AXLag_3Hpk3REXy3Ge6DG5anzw-sNwzq",
+  "IMAGE_30.JPG": "https://drive.google.com/uc?id=1CJSlAFBtdVUQ5vLsWoUmDniOefwz-Bmo",
+  "IMAGE_31.JPG": "https://drive.google.com/uc?id=1Th8wJF4JBTQwY3OlnlCbYfMjOAVRVkPZ",
+  "IMAGE_32.JPG": "https://drive.google.com/uc?id=1bxbSG_J_9P_HV489vR8OWdw9BA9kNSeC",
+  "IMAGE_33.JPG": "https://drive.google.com/uc?id=1yUWfEh0NRZevGApoROXrboniQNPIrhkR",
+  "IMAGE_34.JPG": "https://drive.google.com/uc?id=1QbQpcXQa7TjlyWccXRW7jEhlLHlmOOIV",
+  "IMAGE_35.JPG": "https://drive.google.com/uc?id=1rm2jXUhVBT3zLfRDUOR8i1uZq95BjYaL",
+  "IMAGE_36.JPG": "https://drive.google.com/uc?id=1sgD8svVw8OKMmFnTAN2YhR43HZplHeDH",
+  "IMAGE_37.JPG": "https://drive.google.com/uc?id=1QUE56vG2tbpEWn2pMDyfLjCJ8nQr0cgS",
+  "IMAGE_38.JPG": "https://drive.google.com/uc?id=1zh4O7Zx4jTgAPMTjWlgl6WY5uauquA6A",
+  "IMAGE_39.JPG": "https://drive.google.com/uc?id=1tBjYikhwcTFAC_M-LSVhUHKwKbMaKIwY",
+  "IMAGE_40.JPG": "https://drive.google.com/uc?id=1rDfh0ZmCnqEq0xRIMYV6w4yQGZy2suTq",
+  "IMAGE_41.JPG": "https://drive.google.com/uc?id=1NuER4w0BIWBo2HYcZ7fH6C2UOcLiS2mJ",
+  "IMAGE_42.JPG": "https://drive.google.com/uc?id=1irN44Hk2evEV3gkGzl7-sIpI7x6M77IT",
+  "IMAGE_43.JPG": "https://drive.google.com/uc?id=1nA1FXk0eRu0UR5vQuVJsmq32M7p_RTJ7",
+  "IMAGE_44.JPG": "https://drive.google.com/uc?id=1pEjk1ttd2rUMMOzsJwDS6KMmA9UNCvSY",
+  "IMAGE_45.JPG": "https://drive.google.com/uc?id=1OtmMJzsjPnyEdafeWd7BXAdwdbjhBpj9",
+  "IMAGE_46.JPG": "https://drive.google.com/uc?id=1xWPNYs0m0lTwNpdmMLd2aN8T6ZrxsrON",
+  "IMAGE_47.JPG": "https://drive.google.com/uc?id=1F7-fMSkXvj7L-xvRHNS9WpgohOwjye58",
+  "IMAGE_48.JPG": "https://drive.google.com/uc?id=1Qw3D1YAkO0LSMtCooK67EIQmbQfP9Fvn",
+  "IMAGE_49.JPG": "https://drive.google.com/uc?id=1xibWQ37KlYA_OWG2IDbsGW5-yTlgEaOi",
+  "IMAGE_50.JPG": "https://drive.google.com/uc?id=1N1zCNUeGHTHcWrSgDYH3DgxzJGm0Z0TH",
+  "IMAGE_51.JPG": "https://drive.google.com/uc?id=1-LSbZrY8U3KKuVpr1aP8H79CMW9oOlTi",
+  "IMAGE_52.JPG": "https://drive.google.com/uc?id=1Fu_aSTERdJq2GEMUhRcINcX5vH99c-d8",
+  "IMAGE_53.JPG": "https://drive.google.com/uc?id=10_Z6juQUzROkXMBfeDcep8ljteZyKpjF",
+  "IMAGE_54.JPG": "https://drive.google.com/uc?id=1mIWmU4KPBrI9GxTorEMkuyGmdZUVooEx",
+  "IMAGE_55.JPG": "https://drive.google.com/uc?id=1Us6RXmIEQbKiKMAZhX_u4JfPLvPMB928",
+  "IMAGE_56.JPG": "https://drive.google.com/uc?id=1OgctxjoP6ShP4xwyjHkSPiI2Zgm_8bg0",
+  "IMAGE_57.JPG": "https://drive.google.com/uc?id=15zBw70eMaHAzMB3mv8toRAZ2wbK2v-Co",
+  "IMAGE_58.JPG": "https://drive.google.com/uc?id=1HmfLF8KjPXFtRbTmuwBsvkacxpvbTeWU",
+  "IMAGE_59.JPG": "https://drive.google.com/uc?id=1NUHUs_O2ID3FcmDZ8MHZ-5vun16l_WPv",
+  "IMAGE_60.JPG": "https://drive.google.com/uc?id=1U-F40Hvs37rdgDMFz9dsFljvF2WuO5lZ",
+  "IMAGE_61.JPG": "https://drive.google.com/uc?id=1A79dK8NnP6V5w0SzA8kkuRe7JX6Q8QIr",
+  "IMAGE_62.JPG": "https://drive.google.com/uc?id=1aNblITbOekV_A0yHW_l9a8FiZJ0Ngp3y",
+  "IMAGE_63.JPG": "https://drive.google.com/uc?id=1P5JhRgDnZT0OfWDL1gvuTUzQKk4Qb9Sv",
+  "IMAGE_64.JPG": "https://drive.google.com/uc?id=1CaiMmxk_1Gk1NHb1VJ4O9rR0jsLzM3hd",
+  "IMAGE_65.JPG": "https://drive.google.com/uc?id=1h2Byc9ybTk_HjVmthLNYmRANPzYbK5Pr",
+  "IMAGE_66.JPG": "https://drive.google.com/uc?id=1vX7qCaOE4UVhsHqqPfBItif7GqU8hYjY",
+  "IMAGE_67.JPG": "https://drive.google.com/uc?id=1RwF3Wg0EEXfT4KXQVNEDvm2WlDyppEFA",
+  "IMAGE_68.JPG": "https://drive.google.com/uc?id=1eqAoOk8X3eNVa1lbGAGGrDoEXR-6fT-3",
+  "IMAGE_69.JPG": "https://drive.google.com/uc?id=1poRliWaaIDo1fJjNox3ZAsnvHzsQQnOb",
+  "IMAGE_70.JPG": "https://drive.google.com/uc?id=1zNDvHSmKzRfcmQsxCuDBCEg2MZwBCcJZ",
+  "IMAGE_71.JPG": "https://drive.google.com/uc?id=1vbHTsRErkhnCaiH1k9blXxJbKYzdL3Bb",
+  "IMAGE_72.JPG": "https://drive.google.com/uc?id=1WmMFWo11yo0Zo0J3b8Ot3i6MnBHzRaL1",
+  "IMAGE_73.JPG": "https://drive.google.com/uc?id=1lJIR5eJz4Kv4sFlh8r0iqBOoBBm57b-s",
+  "IMAGE_74.JPG": "https://drive.google.com/uc?id=1ojEmi0xjVwa11eMeRg5T72SwrsRmDymt",
+  "IMAGE_75.JPG": "https://drive.google.com/uc?id=1V20ZmqR1b7W-8p91LV1doqgFYah2s3JY",
+  "IMAGE_76.JPG": "https://drive.google.com/uc?id=1qA8a_L19CzVvxiVqHWWx0aeI02gPZxG6",
+  "IMAGE_77.JPG": "https://drive.google.com/uc?id=1vX-Z2x2mMNG2MqvD3CG_6Hi0wBL-4h9t",
+  "IMAGE_78.JPG": "https://drive.google.com/uc?id=1oypNgEzGaeZJqpFUwSQWTZ3H0qQayf4s",
+  "IMAGE_79.JPG": "https://drive.google.com/uc?id=1VmMuWiRfOlON7E9GRKc_mfHnEfncsgAR",
+  "IMAGE_80.JPG": "https://drive.google.com/uc?id=1u7Dn2ZC_7oK0iYaN1jpvHRR0OAtV_QfJ",
+  "IMAGE_81.JPG": "https://drive.google.com/uc?id=1vxai2dfB_yjfzT8VjA6LXZ94fk_RP9ah",
+  "IMAGE_82.JPG": "https://drive.google.com/uc?id=1QOU1s-fGkicm8nm1i0s_PaLkCNv5gceG",
+  "IMAGE_83.JPG": "https://drive.google.com/uc?id=1PuljgGGrJ3UnQH4PSh8LWW6zd2DZfHW3",
+  "IMAGE_84.JPG": "https://drive.google.com/uc?id=1p4dn9eU7s37r8Fkp5keJ_pzBf9-u5j18",
+  "IMAGE_85.JPG": "https://drive.google.com/uc?id=1lW9rpP497K5FiRcdGpKGB87kPS--pDsw",
+  "IMAGE_86.JPG": "https://drive.google.com/uc?id=1HnFMS0NsHjzLrsfOnuH2GeEqz28tmf9x",
+  "IMAGE_87.JPG": "https://drive.google.com/uc?id=1Ri6fLgdhxW1CKTX5FrsMoNqgzgs1FZ0f",
+  "IMAGE_88.JPG": "https://drive.google.com/uc?id=1maFAkam2LpN0jSekmcSYFs9hJTybsl69",
+  "IMAGE_89.JPG": "https://drive.google.com/uc?id=18HV9z8VFIO2YFDXcKrzwZcPE2_TpYnBj",
+  "IMAGE_90.JPG": "https://drive.google.com/uc?id=1j2T0yjHZ-fyImTnDY8PrIcXg9SNwemLm",
+  "IMAGE_91.JPG": "https://drive.google.com/uc?id=13mFyDYFPAdR9p4PeILM6iJaEyMOQ40eT",
+  "IMAGE_92.JPG": "https://drive.google.com/uc?id=1TXW-T_Ns9fHfRnr6oW5vjCYWicendV2X",
+  "IMAGE_93.JPG": "https://drive.google.com/uc?id=1VSavdmYQGSY9GkUhwAAT00YxcBKF867F",
+  "IMAGE_94.JPG": "https://drive.google.com/uc?id=1sRlf9NSXu_KnxF3Er9SGclHamOcnUZpC",
+  "IMAGE_95.JPG": "https://drive.google.com/uc?id=1VtmE_u7NlB7CYxMTZmNtqnQ8lOTdUyQK",
+  "IMAGE_96.JPG": "https://drive.google.com/uc?id=1QGR5NzRFq4BeNY4qjmAfUIHpKnNchf-w",
+  "IMAGE_97.JPG": "https://drive.google.com/uc?id=1xIHGxgPdN1TZciWpdVNwB83FdIz6lU9V",
+  "IMAGE_98.JPG": "https://drive.google.com/uc?id=187e63_5UTwQrrtr4ePzDNeI_4ZC4mdeL",
+  "IMAGE_99.JPG": "https://drive.google.com/uc?id=1FmE3zBt6zz6KVtQSyiKpPbwgyvK2jjSU",
+  "IMAGE_100.JPG": "https://drive.google.com/uc?id=1eZ-GeSQ2dw283ciCr9ozuBeHHdHw0-XW"
+    };
+
+    // ★ AI Studio を Apps Script 経由で呼ぶ関数
+    async function callAiStudio(text) {
+      const res = await fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userText: text })
+      });
+      const data = await res.json();
+      console.log("AIから返ってきた:", data);
+
+      return data.filename; // filename を返す
+    }
+
+    // ★ UI側の動作
+    document.getElementById("sendBtn").addEventListener("click", async () => {
+      const inputText = document.getElementById("userInput").value;
+      if (!inputText) return alert("何か入力してね！");
+
+      document.getElementById("preview").innerHTML = "<div>推しが考え中…</div>";
+
+      // ① AI呼び出し
+      const filename = await callAiStudio(inputText);
+
+      // ② マッピングから画像URLを取得
+      const imgUrl = imageMap[filename];
+
+      // ③ 表示
+      if (imgUrl) {
+        document.getElementById("preview").innerHTML = `
+          <div class="bubble">推しの返答（${filename}）</div>
+          <img src="${imgUrl}">
+        `;
+      } else {
+        document.getElementById("preview").innerHTML = "画像が見つかりませんでした…";
+      }
+    });
+  </script>
+
+</body>
+</html>

@@ -43,10 +43,10 @@
   <div id="preview"></div>
 
   <script>
-    // ★ Cloudflare Worker のURL
+    // ★ Cloudflare Worker のURL（そのまま使う）
     const SCRIPT_URL = "https://billowing-bar-5086.ayako-suzuki-9fe.workers.dev/";
 
-    // ★ 最新の imageMap（100枚すべて）
+    // ★ 最新の imageMap（83〜100 含む 全100枚）
     const imageMap = {
       "IMAGE_01.JPG": "https://drive.google.com/uc?export=view&id=1LXCw45qQo90i0_T01CnTTMfztYMXA_Hq",
       "IMAGE_02.JPG": "https://drive.google.com/uc?export=view&id=1HHfMjOTNNUwbvUckF_FBzgUvlUb6dTTW",
@@ -150,7 +150,7 @@
       "IMAGE_100.JPG": "https://drive.google.com/uc?export=view&id=1P7ZXLwpxNPQrP2OKYiUbstuzXXOr5Gqt"
     };
 
-    // ★ AI を Cloudflare Worker 経由で呼ぶ
+    // ★ Worker 経由で AI を呼ぶ
     async function callAiStudio(text) {
       const res = await fetch(SCRIPT_URL, {
         method: "POST",
@@ -161,7 +161,7 @@
       return data.filename;
     }
 
-    // ★ ボタンクリック時の動作
+    // ★ 送信ボタンクリック
     document.getElementById("sendBtn").addEventListener("click", async () => {
       const inputText = document.getElementById("userInput").value;
       if (!inputText) return alert("何か入力してね！");
@@ -169,6 +169,10 @@
       document.getElementById("preview").innerHTML = "<div>推しが考え中…</div>";
 
       const filename = await callAiStudio(inputText);
+
+      // 🔵 ここが追加したログ！
+      console.log("AI から返ってきた filename:", filename);
+
       const imgUrl = imageMap[filename];
 
       if (imgUrl) {
